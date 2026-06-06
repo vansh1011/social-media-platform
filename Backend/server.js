@@ -161,7 +161,7 @@ app.post('/post', isAuthenticated, upload.single('image'), async (req, res) => {
         const { content } = req.body;
         if (!content && !req.file) return res.status(400).json({ error: "Post content or image required" });
 
-        let imgUrl = req.file ? `${BACKEND_URL}/uploads/${req.file.filename}` : "";
+        let imgUrl = req.file ? `${process.env.BACKEND_URL}/uploads/${req.file.filename}` : "";
 
         const newPost = await Post.create({
             username: req.user.username,
