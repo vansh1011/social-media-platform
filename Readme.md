@@ -18,7 +18,7 @@ Follow these steps to run the application locally on your machine.
 
 ### 1. Clone the Project
 ```bash
-git clone 
+git clone https://github.com/vansh1011/social-media-platform.git
 cd Social-media-platform
 
 ```
