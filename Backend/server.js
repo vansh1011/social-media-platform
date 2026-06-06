@@ -24,10 +24,14 @@ dotenv.config();
 const app = express();
 const port = 8000;
 
+
 app.set('trust proxy', 1);
 
+
+const allowedOrigins = [process.env.CLIENT, 'http://localhost:5173'].filter(Boolean);
+
 app.use(cors({ 
-    origin: process.env.CLIENT, 
+    origin: allowedOrigins, 
     credentials: true 
 }));
 
@@ -40,7 +44,7 @@ mongoose.connect(process.env.DB_URL)
     .catch(err => console.log('DB Connection Error:', err));
 
 app.use(session({
-    secret: process.env.SESSION_SECRET ,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
@@ -50,7 +54,8 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7, 
         secure: process.env.NODE_ENV === 'production', 
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        
+        sameSite: 'lax'
     }
 }));
 
@@ -161,7 +166,8 @@ app.post('/post', isAuthenticated, upload.single('image'), async (req, res) => {
         const { content } = req.body;
         if (!content && !req.file) return res.status(400).json({ error: "Post content or image required" });
 
-        let imgUrl = req.file ? `${process.env.BACKEND_URL}/uploads/${req.file.filename}` : "";
+       
+        let imgUrl = req.file ? `${process.env.BACKEND_URL || 'http://localhost:8000'}/uploads/${req.file.filename}` : "";
 
         const newPost = await Post.create({
             username: req.user.username,
@@ -186,7 +192,8 @@ app.patch('/like', isAuthenticated, async (req, res) => {
         const post = await Post.findById(postID);
         if (!post) return res.status(404).json({ error: "Post not found" });
 
-        const hasLiked = post.likes.includes(username);
+      
+        const hasLiked = post.likes.some(name => String(name) === String(username));
         const updateOperation = hasLiked ? { $pull: { likes: username } } : { $addToSet: { likes: username } };
 
         const updatedPost = await Post.findByIdAndUpdate(postID, updateOperation, { new: true });
