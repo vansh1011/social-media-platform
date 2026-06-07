@@ -44,7 +44,7 @@ function App() {
 
     useEffect(() => {
         if (user) fetchPosts(page);
-    }, [page, user, fetchPosts]);
+    }, [page, user]);
 
     const handleNewPost = (newPost) => {
         setPosts((prev) => [newPost, ...prev]);
@@ -63,6 +63,7 @@ function App() {
 
     if (loading) {
         return <div style={{ textAlign: "center", marginTop: "50px", fontFamily: "sans-serif" }}>Verifying session secure handshakes...</div>;
+        // here return do a awesome thing as the this div return to the page nothing after this if statement run js just show this div
     }
 
     if (!user) {
@@ -77,9 +78,9 @@ function App() {
                     <button onClick={handleLogout} style={{ padding: "6px 12px", background: "#dc3545", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Logout</button>
                 </div>
                 <Home onPostCreated={handleNewPost} />
-                <Feed 
+                <Feed
                     posts={posts} setPosts={setPosts} fetchPosts={fetchPosts}
-                    page={page} setPage={setPage} hasMore={hasMore} loading={loading} 
+                    page={page} setPage={setPage} hasMore={hasMore} loading={loading}
                 />
             </div>
         </div>

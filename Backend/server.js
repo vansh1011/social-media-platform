@@ -18,11 +18,12 @@ import MongoStore from 'connect-mongo';
 
 import Post from './models/Post.js';
 import User from './models/User.js';
+import { storage } from './configs/Cloudinary.js';
 
 dotenv.config();
 
 const app = express();
-const port = 8000;
+const port = process.env.PORT  || 8000;
 
 
 app.set('trust proxy', 1);
@@ -52,10 +53,10 @@ app.use(session({
         collectionName: 'sessions'
     }),
     cookie: {
+        httpOnly : true ,
         maxAge: 1000 * 60 * 60 * 24 * 7, 
         secure: process.env.NODE_ENV === 'production', 
-        
-        sameSite: 'lax'
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
 }));
 
@@ -77,6 +78,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, passwor
 }));
 
 passport.serializeUser((user, done) => done(null, user.id));
+
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await User.findById(id);
@@ -91,15 +93,11 @@ const isAuthenticated = (req, res, next) => {
     res.status(401).json({ error: "Unauthorized access" });
 };
 
-const uploadDir = 'uploads/';
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
-    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
+
 const upload = multer({ storage });
 
 app.post('/signup', async (req, res) => {
+    console.log("this one run")
     try {
         const { username, email, password } = req.body;
         if (!username || !email || !password) return res.status(400).json({ error: "All fields required" });
@@ -167,7 +165,7 @@ app.post('/post', isAuthenticated, upload.single('image'), async (req, res) => {
         if (!content && !req.file) return res.status(400).json({ error: "Post content or image required" });
 
        
-        let imgUrl = req.file ? `${process.env.BACKEND_URL || 'http://localhost:8000'}/uploads/${req.file.filename}` : "";
+        let imgUrl = req.file?.path || ""
 
         const newPost = await Post.create({
             username: req.user.username,
